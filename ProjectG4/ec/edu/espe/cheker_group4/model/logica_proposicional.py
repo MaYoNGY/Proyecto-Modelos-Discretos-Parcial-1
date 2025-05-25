@@ -1,18 +1,24 @@
 import itertools
 import re
+"""
+Este módulo proporciona funciones para evaluar expresiones lógicas proposicionales.
+Incluye la conversión de expresiones a funciones lógicas, evaluación de expresiones,
+verificación de tautologías, indeterminaciones y contradicciones.
+"""
 
-
+# Definición de funciones lógicas básicas
 def neg(p): return not p
 def conj(p, q): return p and q
 def disj(p, q): return p or q
 def impl(p, q): return (not p) or q
 def biimpl(p, q): return p == q
 
+# Convierte una expresión lógica en una expresión evaluable por Python
 def parser(expr):
     expr = convertir_a_funciones(expr)
     return expr
 
-
+# Convierte los símbolos lógicos a operadores y funciones Python
 def convertir_a_funciones(expr):
     expr = expr.replace('¬', '~')
     expr = expr.replace('∧', '&')
@@ -20,12 +26,14 @@ def convertir_a_funciones(expr):
     expr = expr.replace('→', '>')
     expr = expr.replace('↔', '=')
 
+    # Funciones auxiliares para precedencia y operadores
     def precedencia(op):
         return {'~': 4, '&': 3, '|': 2, '>': 1, '=': 0}.get(op, -1)
 
     def es_operador(c):
         return c in {'~', '&', '|', '>', '='}
 
+    # Algoritmo de Shunting Yard para convertir a notación postfija
     salida = []
     operadores = []
     i = 0
@@ -51,6 +59,7 @@ def convertir_a_funciones(expr):
     while operadores:
         salida.append(operadores.pop())
 
+    # Convierte la notación postfija a una expresión Python evaluable
     pila = []
     for token in salida:
         if token.isalpha():
@@ -71,6 +80,7 @@ def convertir_a_funciones(expr):
                 pila.append(f'biimpl({a},{b})')
     return pila[0]
 
+# Reemplaza negaciones en la expresión por la función neg()
 def reemplazar_negaciones(expr):
     resultado = ''
     i = 0
@@ -88,7 +98,7 @@ def reemplazar_negaciones(expr):
             i += 1
     return resultado
 
-
+# Reemplaza todos los operadores lógicos por sus funciones Python
 def reemplazar_todos_los_operadores(expr):
     for simbolo, funcion in [('↔', 'biimpl'), ('→', 'impl'), ('∨', 'disj'), ('∧', 'conj')]:
         patron = re.compile(r'([a-zA-Z0-9_()]+)' + re.escape(simbolo) + r'([a-zA-Z0-9_()]+)')
@@ -96,7 +106,7 @@ def reemplazar_todos_los_operadores(expr):
             expr = re.sub(patron, rf'{funcion}(\1,\2)', expr)
     return expr
 
-
+# Extrae subexpresiones entre paréntesis
 def extraer_parentesis(expr, inicio):
     i = inicio
     nivel = 0
@@ -110,11 +120,11 @@ def extraer_parentesis(expr, inicio):
         i += 1
     raise ValueError("Paréntesis no balanceados")
 
-
+# Obtiene todas las variables proposicionales de la expresión
 def obtener_variables(expr):
     return sorted(set(filter(str.isalpha, expr)))
 
-
+# Evalúa la expresión lógica usando los valores dados para las variables
 def evaluar_expr(expr, valores):
     expr_traducida = parser(expr)
     for var, val in valores.items():
@@ -129,7 +139,7 @@ def evaluar_expr(expr, valores):
         'False': False
     })
 
-
+# Verifica si la fórmula es tautología, contradicción o indeterminada
 def verificar_formula(expr):
     variables = obtener_variables(expr)
     combinaciones = list(itertools.product([True, False], repeat=len(variables)))
