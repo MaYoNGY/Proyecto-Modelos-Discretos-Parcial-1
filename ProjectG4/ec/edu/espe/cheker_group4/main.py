@@ -10,4 +10,5 @@ def main():
     print(f"Resultado: {resultado}")       
 
 if __name__ == "__main__":
+
     main()
